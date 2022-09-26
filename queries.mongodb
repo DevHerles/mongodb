@@ -1,0 +1,131 @@
+
+// 1.a
+
+db.pedidos.find({},{cliente:1, detalle:1})
+
+aggregation = [{
+    $project: {
+        _id:0,
+        cliente: 1,
+        detalle: 1,
+    }
+}]
+
+db.pedidos.aggregate(aggregation)
+
+// 1.b
+
+db.pedidos.aggregate([{
+$project: {
+  _id:0, id:1, cliente:1, repartidor:1, horario:1
+}}])
+
+db.pedidos.aggregate([{
+$project: {
+  _id:0, id:1, "detalle.id":1, "detalle.producto":1
+}}])
+
+
+// 2.a
+
+db.pedidos.aggregate([{
+$match: {
+  estado: {$eq: "ATENDIDO"}
+}}])
+
+// 2.b
+
+db.pedidos.aggregate([{
+    $match: {
+      horario: {$eq: "09:00 - 13:00"}
+    }
+}])
+
+// 2.c
+
+db.pedidos.aggregate([{$match: {"detalle.producto": {$eq: "Vainilla"}}}])
+
+// 3.a
+
+db.pedidos.aggregate([{
+$group: {
+  _id: "$horario",
+  
+}}])
+
+// 3.b
+
+db.pedidos.aggregate([{
+$group: {
+  _id: {"horario": "$horario", "repartidor": "$repartidor"},
+}}])
+
+// 3.c
+
+db.pedidos.aggregate([{
+$group: {
+  _id: {"horario": "$horario", "repartidor": "$repartidor"},
+  pedidos: {
+    $sum: 1
+  }
+}}])
+
+// 3.d
+
+db.pedidos.aggregate([{
+$group: {
+  _id: {"repartidor": "$repartidor"},
+  pedidos: {
+    $sum: 1
+  }
+}}])
+
+// 4.a
+
+db.pedidos.aggregate([{
+    $project: {id:0, id:1, cliente:1, repartidor:1}},
+    {$sort: {cliente:-1}}])
+
+// 4.b
+
+db.pedidos.aggregate([
+    {$project: {_id:0, id:1, cliente:1, total: {$sum: 1}}},
+    {$sort: {total:-1}}])
+
+// 5.a
+
+db.pedidos.aggregate([
+    {$project: {_id:0, id:1, cliente:1, detalle:1}},
+    {$match: {cliente:"CAVERO VILLAR JORGE LUIS"}},
+    {$unwind: "$detalle"}
+])
+
+// 6.a
+
+db.pedidos.aggregate([
+    {$match: {total_pedido:{$gte: 50}}},
+    {$project: {_id:0, id:1, cliente:1, total_pedido:1}},
+    {$sort: {total_pedido: 1}}
+])
+
+// 6.b
+
+db.pedidos.aggregate([
+    {$project: {_id:0, id:1, cliente:1, total_pedido:1, gt60: {$gt: ["$total_pedido", 60]}}},
+])
+
+// 7.a
+
+db.pedidos.aggregate([
+    {$match: {$and: [ 
+        {$or: [{estado:"PENDIENTE"},{horario: "14:00 - 18:00"}]},
+        {}]}},
+])
+
+// 7.b
+
+db.pedidos.aggregate([
+    {$match: {$and: [ 
+        {$or: [{total_pedido:{$gte: 40}},{total_pedido: {$lte: 30}}]},
+        {estado: "PENDIENTE"}]}},
+])
